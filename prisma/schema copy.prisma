@@ -1,0 +1,44 @@
+// Prisma schema 文件
+// 文档：https://pris.ly/d/prisma-schema
+// 在这里用代码定义数据库表结构，Prisma 会帮你生成真实的 SQL 建表语句
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ========== 数据模型（每定义一个 model = 数据库一张表） ==========
+
+// 用户表：后台管理系统的账号
+model User {
+  id        Int      @id @default(autoincrement())  // 主键，自增
+  email     String   @unique                        // 邮箱，唯一
+  username  String   @unique                        // 用户名，唯一
+  password  String                                  // 密码（存加密后的，不存明文）
+  role      String   @default("user")               // 角色：user 普通用户 / admin 管理员
+  createdAt DateTime @default(now()) @map("created_at")  // 创建时间
+  updatedAt DateTime @updatedAt       @map("updated_at")  // 更新时间
+
+  @@map("users")  // 数据库里的真实表名用 users（复数小写，数据库规范）
+}
+
+// 商品表
+model Goods {
+  id          Int      @id @default(autoincrement())   // 主键，自增
+  name        String                                 // 商品名称
+  price       Decimal  @db.Decimal(10, 2)            // 价格（用 Decimal 避免浮点误差）
+  stock       Int      @default(0)                   // 库存
+  image       String?                                // 图片地址（可空）
+  description String?                                // 商品描述（可空）
+  status      Int      @default(1)                   // 状态：1上架 0下架
+  createdAt   DateTime @default(now()) @map("created_at")  // 创建时间
+  updatedAt   DateTime @updatedAt       @map("updated_at")  // 更新时间
+
+  @@map("goods")  // 数据库里的真实表名用 goods
+}
+
+

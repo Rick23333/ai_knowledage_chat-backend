@@ -1,0 +1,89 @@
+// ============================================================
+// Prisma 数据模型定义文件（数据库的"蓝图"）
+// 在这里定义模型 → 执行 npx prisma migrate dev 就会在 MySQL 建表
+// ============================================================
+
+generator client {
+  provider = "prisma-client"        // 生成 Prisma Client 代码（项目已改用 Prisma 7 的生成方式）
+  output   = "../generated/prisma"  // 生成的代码输出到 generated/prisma 目录
+}
+
+datasource db {
+  provider = "mysql"                // 数据库类型：MySQL
+  // url      = env("DATABASE_URL")  // 连接串（已在 prisma.config.ts 里配置，这里注释掉即可）
+}
+
+// ============================================================
+// 用户表
+// ============================================================
+model User {
+  id        Int      @id @default(autoincrement()) // 主键，数据库自动生成（自增：1、2、3...）
+  username  String   @unique                       // 用户名，唯一（不能重复注册）
+  password  String                                 // 密码（存的是 bcrypt 加密后的密文，不是明文）
+  role      Role     @default(USER)                // 角色：普通用户/管理员，默认普通用户
+  createdAt DateTime @default(now())               // 创建时间，插入时自动填当前时间
+  updatedAt DateTime @updatedAt                    // 更新时间，每次修改自动更新
+
+  documents Document[]     // 反向关系：一个用户有多篇文档（不建字段，只用于联查）
+  sessions  ChatSession[]  // 反向关系：一个用户有多个会话
+}
+
+// ============================================================
+// 文档表
+// ============================================================
+model Document {
+  id          Int      @id @default(autoincrement()) // 主键，自增
+  title       String                                 // 文档标题
+  filePath    String                                 // 文件存储路径（存在哪个目录/文件名）
+  content     String? @db.Text                                  // 文档内容（Text 大文本类型；? 表示可空，允许没有内容）
+  userId      Int                                    // 所属用户 ID（外键，指向 User.id）
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade) // 关联的用户；用户被删时连带删掉他的文档
+  createdAt   DateTime @default(now())               // 创建时间
+  updatedAt   DateTime @updatedAt                    // 更新时间
+
+  sessions ChatSession[] // 反向关系：一个文档有多个会话
+}
+
+// ============================================================
+// 聊天会话表（一次"对话"）
+// ============================================================
+model ChatSession {
+  id          Int      @id @default(autoincrement()) // 主键，自增
+  title       String                                 // 会话标题（比如"第一次对话"）
+  userId      Int                                    // 所属用户 ID（外键）
+  documentId  Int?                                   // 关联的文档 ID（? 可空：可以不关联文档直接聊天）
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)     // 用户被删 → 会话跟着删
+  document    Document?   @relation(fields: [documentId], references: [id], onDelete: SetNull)  // 文档被删 → 这里置空，会话保留
+  createdAt   DateTime @default(now())               // 创建时间
+  updatedAt   DateTime @updatedAt                    // 更新时间
+
+  messages ChatMessage[] // 反向关系：一个会话有多条消息
+}
+
+// ============================================================
+// 聊天消息表（会话里的一条条消息）
+// ============================================================
+model ChatMessage {
+  id          Int      @id @default(autoincrement()) // 主键，自增
+  role        MsgRole                                // 这条消息是谁说的：user=用户 / assistant=AI
+  content     String? @db.Text                                   // 消息内容
+  sessionId   Int                                    // 所属会话 ID（外键）
+  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade) // 会话被删 → 消息跟着删
+  createdAt   DateTime @default(now())               // 发送时间
+}
+
+// ============================================================
+// 枚举：角色
+// ============================================================
+enum Role {
+  USER   // 普通用户
+  ADMIN  // 管理员
+}
+
+// ============================================================
+// 枚举：消息角色
+// ============================================================
+enum MsgRole {
+  user       // 用户发的消息
+  assistant  // AI 回复的消息
+}
