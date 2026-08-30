@@ -9,6 +9,7 @@ import 'dotenv/config'  // 加载 .env 文件里的环境变量到 process.env
 import userRoutes from './routes/user.routes'  // 用户相关路由
 import authRoutes from './routes/auth.routes'  // 认证相关路由（登录/JWT）
 import goodsRoutes from './routes/goods.routes'  // 商品相关路由
+import messageRoutes from './routes/message.routes'  // 聊天消息相关路由
 
 // 创建 Express 应用实例
 const app = express()
@@ -45,6 +46,7 @@ app.get('/health', (_req: Request, res: Response) => {
 app.use('/api/users', userRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/goods', goodsRoutes)
+app.use('/api/messages', messageRoutes)
 
 // ========== 启动服务器 ==========
 const PORT = process.env.PORT || 3000
