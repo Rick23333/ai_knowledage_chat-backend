@@ -33,9 +33,9 @@ model User {
 // ============================================================
 model Document {
   id          Int      @id @default(autoincrement()) // 主键，自增
-  title       String                                 // 文档标题
-  filePath    String                                 // 文件存储路径（存在哪个目录/文件名）
-  content     String? @db.Text                                  // 文档内容（Text 大文本类型；? 表示可空，允许没有内容）
+  filename    String                                 // 文档名（上传时的文件名）
+  filePath    String?                                // 预留：以后存真实文件路径用（现在只存文本，用不到）
+  content     String? @db.Text                        // 文档内容（String + @db.Text = MySQL 的 TEXT 大文本类型；? 表示可空）
   userId      Int                                    // 所属用户 ID（外键，指向 User.id）
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade) // 关联的用户；用户被删时连带删掉他的文档
   createdAt   DateTime @default(now())               // 创建时间
