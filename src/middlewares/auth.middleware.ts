@@ -13,7 +13,6 @@ declare global {
     interface Request {
       user?: {
         id: number
-        email: string
         username: string
         role: string
       }
@@ -37,7 +36,6 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     // 验证通过会返回 token 里存的数据（登录时塞进去的用户信息）
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as {
       id: number
-      email: string
       username: string
       role: string
     }

@@ -9,30 +9,30 @@ import { prisma } from '../lib/prisma'
 
 // 登录参数校验规则
 const loginSchema = z.object({
-  email: z.string().email('邮箱格式不正确'),
+  username: z.string().min(1, '请输入用户名'),
   password: z.string().min(1, '请输入密码'),
 })
 
 // 登录
 // 请求方式：POST /api/auth/login
-// 请求体：{ email, password }
+// 请求体：{ username, password }
 // 返回：{ token, user }
 export async function login(req: Request, res: Response) {
   try {
     // 1. 校验参数
-    const { email, password } = loginSchema.parse(req.body)
+    const { username, password } = loginSchema.parse(req.body)
 
-    // 2. 按邮箱查用户
-    const user = await prisma.user.findUnique({ where: { email } })
+    // 2. 按用户名查用户
+    const user = await prisma.user.findUnique({ where: { username } })
     if (!user) {
-      // 出于安全，邮箱和密码错误都返回同样的提示，避免暴露邮箱是否存在
-      return res.status(401).json({ error: '邮箱或密码错误' })
+      // 出于安全，用户名和密码错误都返回同样的提示，避免暴露用户名是否存在
+      return res.status(401).json({ error: '用户名或密码错误' })
     }
 
     // 3. 校验密码：bcrypt.compare(明文, 加密后的) 返回 true/false
     const ok = await bcrypt.compare(password, user.password)
     if (!ok) {
-      return res.status(401).json({ error: '邮箱或密码错误' })
+      return res.status(401).json({ error: '用户名或密码错误' })
     }
 
     // 4. 生成 JWT token
@@ -40,7 +40,7 @@ export async function login(req: Request, res: Response) {
     // 第二个参数：密钥（.env 里的 JWT_SECRET，用来签名防伪造）
     // 第三个参数：有效期（7 天后过期，需重新登录）
     const token = jwt.sign(
-      { id: user.id, email: user.email, username: user.username, role: user.role },
+      { id: user.id, username: user.username, role: user.role },
       process.env.JWT_SECRET!,
       { expiresIn: '7d' }
     )
@@ -51,7 +51,6 @@ export async function login(req: Request, res: Response) {
       token,
       user: {
         id: user.id,
-        email: user.email,
         username: user.username,
         role: user.role,
       },

@@ -9,23 +9,22 @@ import { prisma } from '../lib/prisma'
 
 // 注册接口的参数校验规则
 const registerSchema = z.object({
-  email: z.string().email('邮箱格式不正确'),
   username: z.string().min(2, '用户名至少2个字符'),
   password: z.string().min(6, '密码至少6位'),
 })
 
 // 注册用户
 // 请求方式：POST /api/users/register
-// 请求体：{ email, username, password }
+// 请求体：{ username, password }
 export async function register(req: Request, res: Response) {
   try {
     // 1. 校验前端传来的参数（不合法会抛错，被 catch 捕获）
     const data = registerSchema.parse(req.body)
 
-    // 2. 检查邮箱是否已被注册
-    const exists = await prisma.user.findUnique({ where: { email: data.email } })
+    // 2. 检查用户名是否已被注册
+    const exists = await prisma.user.findUnique({ where: { username: data.username } })
     if (exists) {
-      return res.status(400).json({ error: '该邮箱已被注册' })
+      return res.status(400).json({ error: '该用户名已被注册' })
     }
 
     // 3. 加密密码（不能存明文！bcrypt 第二个参数是加密强度，10 是默认值）
@@ -34,7 +33,6 @@ export async function register(req: Request, res: Response) {
     // 4. 存入数据库
     const user = await prisma.user.create({
       data: {
-        email: data.email,
         username: data.username,
         password: hashedPassword,
       },
@@ -45,7 +43,6 @@ export async function register(req: Request, res: Response) {
       message: '注册成功',
       user: {
         id: user.id,
-        email: user.email,
         username: user.username,
         role: user.role,
       },
@@ -63,7 +60,6 @@ export async function list(_req: Request, res: Response) {
     const users = await prisma.user.findMany({
       select: {
         id: true,
-        email: true,
         username: true,
         role: true,
         createdAt: true,

@@ -18,7 +18,7 @@ datasource db {
 // ============================================================
 model User {
   id        Int      @id @default(autoincrement()) // 主键，数据库自动生成（自增：1、2、3...）
-  username  String   @unique                       // 用户名，唯一（不能重复注册）
+  username  String   @unique                       // 用户名，唯一（登录账号用；不能重复注册）
   password  String                                 // 密码（存的是 bcrypt 加密后的密文，不是明文）
   role      Role     @default(USER)                // 角色：普通用户/管理员，默认普通用户
   createdAt DateTime @default(now())               // 创建时间，插入时自动填当前时间
