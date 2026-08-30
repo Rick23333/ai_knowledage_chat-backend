@@ -11,6 +11,7 @@ import authRoutes from './routes/auth.routes'  // 认证相关路由（登录/JW
 import goodsRoutes from './routes/goods.routes'  // 商品相关路由
 import messageRoutes from './routes/message.routes'  // 聊天消息相关路由
 import documentRoutes from './routes/document.routes'  // 文档相关路由
+import adminRoutes from './routes/admin.routes'  // 管理员相关路由
 
 // 创建 Express 应用实例
 const app = express()
@@ -49,6 +50,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/goods', goodsRoutes)
 app.use('/api/messages', messageRoutes)
 app.use('/api/documents', documentRoutes)
+app.use('/api/admin', adminRoutes)
 
 // ========== 启动服务器 ==========
 const PORT = process.env.PORT || 3000
